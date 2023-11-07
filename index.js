@@ -1,12 +1,19 @@
 const express = require('express');
 const cors = require('cors');
 const jwt =require('jsonwebtoken')
+const cookieParser =require('cookie-parser')
 require('dotenv').config()
 const app = express()
 const port = process.env.PORT || 5000
 
-app.use(cors())
+app.use(cors(
+    {
+        origin:['http://localhost:5173'],
+        credentials:true
+    }
+))
 app.use(express.json());
+app.use(cookieParser())
 
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
@@ -21,7 +28,32 @@ const client = new MongoClient(uri, {
     }
 });
 
+    const logger = async(req,res,next)=>{
 
+    }
+
+    const verifyToken =async(req,res,next)=>{
+        const token = req.cookies?.token
+      
+        if(!token){
+            return res.status(401).send({message: 'not Authorized'})
+        }
+
+        jwt.verify(token,process.env.ACCESS_TOKEN_SECRET,(err,decoded)=>{
+
+            if(err)
+            {
+            return res.status(401).send({message: 'not Authorized'})
+
+            }
+
+            req.user=decoded
+            next()
+
+        })
+
+        
+    }
 
 
 async function run() {
@@ -49,8 +81,14 @@ async function run() {
 
         app.post('/jwt',async(req,res)=>{
             const user =req.body
-            console.log(usr);
-            res.send(user)
+            const token = jwt.sign(user,process.env.ACCESS_TOKEN_SECRET,{expiresIn:'48h'})
+
+            res
+            .cookie('token',token,{
+                httpOnly:true,
+                secure:false
+            })
+            .send({success:true})
         })
 
 
@@ -64,14 +102,20 @@ async function run() {
             res.send(result)                                                                                                                                                            
         })
 
-        app.get('/bookingData', async (req, res) => {
+        app.get('/bookingData',verifyToken, async (req, res) => {
             const result = await BookingCollection.find().toArray()
+            // console.log('ttt token',req.cookies);
             res.send(result)
         })
 
-        app.get('/bookingData/:userId', async (req, res) => {
+        app.get('/bookingData/:userId',verifyToken, async (req, res) => {
             const userId =req.params.userId
+            if(userId !== req.user.uId){
+                return res.status(401).send({message: 'not Authorized'})
+            }
+            
             const query ={userId:userId}
+            // console.log('token',req.cookies);
             const result = await BookingCollection.find(query).toArray()
             res.send(result)
         })
@@ -84,18 +128,13 @@ async function run() {
             const result = await ReviewCollection.insertOne(booking)
             res.send(result)                                                                                                                                                            
         })
-        app.get('/reviewData', async (req, res) => {
+        app.get('/reviewData', verifyToken, async (req, res) => {
             const result = await ReviewCollection.find().toArray()
             res.send(result)
         })
 
         //Delete booking
-        app.delete('/bookingData/delete/:id',async(req,res)=>{
-            const id = req.params.id
-            const query = { _id: new ObjectId(id) }
-            const result = await BookingCollection.deleteOne(query)
-            res.send(result)
-        })
+       
 
         //update booking date
         app.put('/booking/update/:id',async(req,res)=>{
