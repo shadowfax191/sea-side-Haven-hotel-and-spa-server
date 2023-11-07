@@ -142,26 +142,7 @@ async function run() {
         })
 
         //update booking date
-        app.put('/booking/update/:id',async(req,res)=>{
-            const data = req.body
-            const id =req.params.id
-            const filter={
-                _id: new ObjectId(id)
-            }
-            const options ={upsert:true}
-            const updateData = {
-                $set:{
-                    date: data.date
-                }
-            }
-
-            const result = await BookingCollection.updateOne(
-                filter,
-                updateData,
-                options
-            )
-            res.send(result)
-        })
+       
 
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
