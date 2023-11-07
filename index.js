@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const jwt =require('jsonwebtoken')
 require('dotenv').config()
 const app = express()
 const port = process.env.PORT || 5000
@@ -44,6 +45,18 @@ async function run() {
             res.send(result)
         })
 
+        //jwt Auth
+
+        app.post('/jwt',async(req,res)=>{
+            const user =req.body
+            console.log(usr);
+            res.send(user)
+        })
+
+
+
+
+
         //booking details collection
         app.post('/bookingData', async (req, res) => {
             const booking = req.body
@@ -56,6 +69,15 @@ async function run() {
             res.send(result)
         })
 
+        app.get('/bookingData/:userId', async (req, res) => {
+            const userId =req.params.userId
+            const query ={userId:userId}
+            const result = await BookingCollection.find(query).toArray()
+            res.send(result)
+        })
+
+
+
         //review detail collection 
         app.post('/reviewData', async (req, res) => {
             const booking = req.body
@@ -64,6 +86,36 @@ async function run() {
         })
         app.get('/reviewData', async (req, res) => {
             const result = await ReviewCollection.find().toArray()
+            res.send(result)
+        })
+
+        //Delete booking
+        app.delete('/bookingData/delete/:id',async(req,res)=>{
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await BookingCollection.deleteOne(query)
+            res.send(result)
+        })
+
+        //update booking date
+        app.put('/booking/update/:id',async(req,res)=>{
+            const data = req.body
+            const id =req.params.id
+            const filter={
+                _id: new ObjectId(id)
+            }
+            const options ={upsert:true}
+            const updateData = {
+                $set:{
+                    date: data.date
+                }
+            }
+
+            const result = await BookingCollection.updateOne(
+                filter,
+                updateData,
+                options
+            )
             res.send(result)
         })
 
