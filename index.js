@@ -8,7 +8,7 @@ const port = process.env.PORT || 5000
 
 app.use(cors(
     {
-        origin:[ 'http://localhost:5173/', 'sea-side-haven.web.app','https://sea-side-haven.firebaseapp.com/',],
+        origin:[ 'sea-side-haven.web.app','https://sea-side-haven.firebaseapp.com',],
         credentials:true
     }
 ))
