@@ -8,7 +8,7 @@ const port = process.env.PORT || 5000
 
 app.use(cors(
     {
-        origin:['http://localhost:5173'],
+        origin:[ 'http://localhost:5173/', 'sea-side-haven.web.app','https://sea-side-haven.firebaseapp.com/',],
         credentials:true
     }
 ))
@@ -27,10 +27,6 @@ const client = new MongoClient(uri, {
         deprecationErrors: true,
     }
 });
-
-    const logger = async(req,res,next)=>{
-
-    }
 
     const verifyToken =async(req,res,next)=>{
         const token = req.cookies?.token
